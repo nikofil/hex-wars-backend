@@ -1,6 +1,10 @@
-use serde::Serialize;
 use crate::state::GameState;
 use crate::state::CellState;
+
+use serde::Serialize;
+use rocket::response::status::Custom;
+use rocket::http::Status;
+use rocket_contrib::json::Json;
 
 #[serde(rename_all = "camelCase")]
 #[derive(Serialize)]
@@ -25,7 +29,7 @@ pub struct GameStateResponse {
     started: bool,
     cur_player: u32,
     num_players: u32,
-    map: Vec<CellStateResponse>,
+    hex: Vec<CellStateResponse>,
 }
 
 impl GameStateResponse {
@@ -34,7 +38,7 @@ impl GameStateResponse {
             started: state.started,
             cur_player: state.cur_player,
             num_players: state.num_players,
-            map: state.cell_state.iter().map(|cell| {
+            hex: state.cell_state.iter().map(|cell| {
                 let CellState { id, q, r, s, owner, power } = *cell;
                 CellStateResponse { id, q, r, s, owner, power }
             }).collect::<Vec<CellStateResponse>>(),
@@ -60,4 +64,12 @@ impl ErrorResponse {
         let error = String::from(error);
         ErrorResponse { error }
     }
+}
+
+pub fn not_found(err: &'static str) -> Custom<Json<ErrorResponse>> {
+    Custom(Status::NotFound, Json(ErrorResponse::new(err)))
+}
+
+pub fn forbidden(err: &'static str) -> Custom<Json<ErrorResponse>> {
+    Custom(Status::Forbidden, Json(ErrorResponse::new(err)))
 }

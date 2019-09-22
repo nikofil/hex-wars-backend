@@ -11,7 +11,7 @@ mod responses;
 use responses::*;
 
 use rocket::State;
-use rocket::response::status::NotFound;
+use rocket::response::status::Custom;
 use rocket_contrib::json::Json;
 
 #[get("/newGame")]
@@ -23,13 +23,13 @@ fn new_game(games: State<GameList>) -> Json<NewGameResponse> {
 }
 
 #[get("/joinGame/<id>")]
-fn join_game(id: u32, games: State<GameList>) -> Result<Json<JoinGameResponse>, NotFound<Json<ErrorResponse>>> {
+fn join_game(id: u32, games: State<GameList>) -> Result<Json<JoinGameResponse>, Custom<Json<ErrorResponse>>> {
     let mut state = games.game_state(id);
     match state.borrow_mut() {
-        None => Err(NotFound(Json(ErrorResponse::new("game not found")))),
+        None => Err(not_found("game not found")),
         Some(game) => {
             match game.new_player() {
-                None => Err(NotFound(Json(ErrorResponse::new("cannot join game")))),
+                None => Err(forbidden("cannot join game")),
                 Some(( player_secret, player_id )) => Ok(Json(JoinGameResponse{ player_secret, player_id })),
             }
         },
@@ -37,13 +37,13 @@ fn join_game(id: u32, games: State<GameList>) -> Result<Json<JoinGameResponse>, 
 }
 
 #[put("/startGame/<id>")]
-fn start_game(id: u32, games: State<GameList>) -> Result<Json<String>, NotFound<Json<ErrorResponse>>> {
+fn start_game(id: u32, games: State<GameList>) -> Result<Json<String>, Custom<Json<ErrorResponse>>> {
     let mut state = games.game_state(id);
     match state.borrow_mut() {
-        None => Err(NotFound(Json(ErrorResponse::new("game not found")))),
+        None => Err(not_found("game not found")),
         Some(game) => {
             match game.start_game() {
-                None => Err(NotFound(Json(ErrorResponse::new("no players in game")))),
+                None => Err(forbidden("no players in game")),
                 Some(_) => Ok(Json(String::from(""))),
             }
 
@@ -52,10 +52,10 @@ fn start_game(id: u32, games: State<GameList>) -> Result<Json<String>, NotFound<
 }
 
 #[get("/gameState/<id>")]
-fn game_state(id: u32, games: State<GameList>) -> Result<Json<GameStateResponse>, NotFound<Json<ErrorResponse>>> {
+fn game_state(id: u32, games: State<GameList>) -> Result<Json<GameStateResponse>, Custom<Json<ErrorResponse>>> {
     let mut state = games.game_state(id);
     match state.borrow_mut() {
-        None => Err(NotFound(Json(ErrorResponse::new("game not found")))),
+        None => Err(not_found("game not found")),
         Some(game) => {
             Ok(Json(GameStateResponse::new(game)))
         },

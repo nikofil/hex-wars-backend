@@ -2,11 +2,24 @@
 
 #[macro_use] extern crate rocket;
 
+mod state;
+use state::GameList;
+use rocket::State;
+
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn index(games: State<GameList>) -> &'static str {
+    println!("hi!");
+    games.new_game();
+    let mut x = games.game_state(10);
+    match x.borrow_mut() {
+        None => "got none",
+        Some(_) => "got some",
+    }
 }
 
 fn main() {
-    rocket::ignite().mount("/", routes![index]).launch();
+    let games = GameList::new();
+    rocket::ignite()
+        .manage(games)
+        .mount("/", routes![index]).launch();
 }

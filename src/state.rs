@@ -1,16 +1,24 @@
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::sync::MutexGuard;
-use std::ops::Deref;
-use std::ops::DerefMut;
-use rand::prelude::*;
+use rand;
 
+#[derive(Debug)]
 pub struct GameState {
+    started: bool,
+    cur_player: u32,
+    num_players: u32,
+    max_players: u32,
 }
 
 impl GameState {
     fn new() -> GameState {
-        GameState {}
+        GameState {
+            started: false,
+            cur_player: 0,
+            num_players: 0,
+            max_players: 5,
+        }
     }
 }
 
